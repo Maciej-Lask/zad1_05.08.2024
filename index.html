@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Parser </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Parser var_dump</h1>
+
+    <label for="input">Input (var_dump):</label>
+    <textarea id="input" placeholder='array(6) {
+  ["klucz"]=>
+  string(7) "wartosc"
+  ["klucz2"]=>
+  string(8) "wartosc2"
+  ["klucz_int"]=>
+  int(312)
+  ["klucz_float"]=>
+  float(4.12)
+  ["klucz_bool_tak"]=>
+  bool(true)
+  ["klucz_bool_nie"]=>
+  bool(false)
+}'></textarea>
+
+    <button onclick="convert()">Convert</button>
+
+    <label for="output">Output (PHP):</label>
+    <textarea id="output" readonly placeholder='$result["klucz"] = "wartosc";
+$result["klucz2"] = "wartosc2";
+$result["klucz_int"] = 312;
+$result["klucz_float"] = 4.12;
+$result["klucz_bool_tak"] = true;
+$result["klucz_bool_nie"] = false;'></textarea>
+
+    <script>
+        function convert() {
+            const input = document.getElementById('input').value;
+            const output = document.getElementById('output');
+            const result = [];
+
+            const regex = /\["(.*?)"\]=>\s*(string\(\d+\) "(.*?)"|int\((\d+)\)|float\((\d+\.\d+)\)|bool\((true|false)\))/g;
+            let match;
+            while ((match = regex.exec(input)) !== null) {
+                if (match[2].startsWith("string")) {
+                    result.push(`$result['${match[1]}'] = '${match[3]}';`);
+                } else if (match[2].startsWith("int")) {
+                    result.push(`$result['${match[1]}'] = ${match[4]};`);
+                } else if (match[2].startsWith("float")) {
+                    result.push(`$result['${match[1]}'] = ${match[5]};`);
+                } else if (match[2].startsWith("bool")) {
+                    result.push(`$result['${match[1]}'] = ${match[6]};`);
+                }
+            }
+
+            output.value = result.join('\n');
+        }
+    </script>
+
+</body>
+
+</html>
