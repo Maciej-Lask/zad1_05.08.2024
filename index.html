@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Parser </title>
+    <title>Parser var_dump</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -28,30 +28,18 @@
     <h1>Parser var_dump</h1>
 
     <label for="input">Input (var_dump):</label>
-    <textarea id="input" placeholder='array(6) {
+    <textarea id="input" placeholder='array(2) {
   ["klucz"]=>
   string(7) "wartosc"
-  ["klucz2"]=>
-  string(8) "wartosc2"
   ["klucz_int"]=>
   int(312)
-  ["klucz_float"]=>
-  float(4.12)
-  ["klucz_bool_tak"]=>
-  bool(true)
-  ["klucz_bool_nie"]=>
-  bool(false)
 }'></textarea>
 
-    <button onclick="convert()">Convert</button>
+    <button onclick="convert()">Konwertuj</button>
 
     <label for="output">Output (PHP):</label>
-    <textarea id="output" readonly placeholder='$result["klucz"] = "wartosc";
-$result["klucz2"] = "wartosc2";
-$result["klucz_int"] = 312;
-$result["klucz_float"] = 4.12;
-$result["klucz_bool_tak"] = true;
-$result["klucz_bool_nie"] = false;'></textarea>
+    <textarea id="output" readonly placeholder="$result['klucz'] = 'wartosc';
+$result['klucz_int'] = 312;"></textarea>
 
     <script>
         function convert() {
@@ -59,19 +47,35 @@ $result["klucz_bool_nie"] = false;'></textarea>
             const output = document.getElementById('output');
             const result = [];
 
-            const regex = /\["(.*?)"\]=>\s*(string\(\d+\) "(.*?)"|int\((\d+)\)|float\((\d+\.\d+)\)|bool\((true|false)\))/g;
-            let match;
-            while ((match = regex.exec(input)) !== null) {
-                if (match[2].startsWith("string")) {
-                    result.push(`$result['${match[1]}'] = '${match[3]}';`);
-                } else if (match[2].startsWith("int")) {
-                    result.push(`$result['${match[1]}'] = ${match[4]};`);
-                } else if (match[2].startsWith("float")) {
-                    result.push(`$result['${match[1]}'] = ${match[5]};`);
-                } else if (match[2].startsWith("bool")) {
-                    result.push(`$result['${match[1]}'] = ${match[6]};`);
+            function parseVarDump(varDump, parentKey = '') {
+                const regex = /\["(.*?)"\]=>\s*(array\((\d+)\)\s*\{([^{}]*)\}|string\(\d+\) "(.*?)"|int\((\d+)\)|float\((\d+\.\d+)\)|bool\((true|false)\))/g;
+                let match;
+                const arrayRegex = /array\((\d+)\)\s*\{([^{}]*)\}/g;
+                const isEmptyArray = arrayRegex.exec(varDump);
+
+                if (isEmptyArray && isEmptyArray[1] === '0') {
+                    result.push(`$result = [];`);
+                    return;
+                }
+
+                while ((match = regex.exec(varDump)) !== null) {
+                    const key = parentKey ? `${parentKey}['${match[1]}']` : `['${match[1]}']`;
+                    if (match[2] && match[2].startsWith("array")) {
+                        result.push(`$result${key} = [];`);
+                        parseVarDump(match[4], key);
+                    } else if (match[5] !== undefined) {
+                        result.push(`$result${key} = '${match[5]}';`);
+                    } else if (match[6] !== undefined) {
+                        result.push(`$result${key} = ${match[6]};`);
+                    } else if (match[7] !== undefined) {
+                        result.push(`$result${key} = ${match[7]};`);
+                    } else if (match[8] !== undefined) {
+                        result.push(`$result${key} = ${match[8]};`);
+                    }
                 }
             }
+
+            parseVarDump(input);
 
             output.value = result.join('\n');
         }
