@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parser var_dump</title>
     <style>
         body {
@@ -20,67 +21,126 @@
             padding: 10px 20px;
             font-size: 16px;
         }
+
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ddd;
+            min-height: 100px;
+            white-space: pre-wrap;
+        }
     </style>
 </head>
 
 <body>
-
     <h1>Parser var_dump</h1>
-
     <label for="input">Input (var_dump):</label>
-    <textarea id="input" placeholder='array(2) {
-  ["klucz"]=>
-  string(7) "wartosc"
-  ["klucz_int"]=>
-  int(312)
-}'></textarea>
-
-    <button onclick="convert()">Konwertuj</button>
-
+    <textarea id="input" placeholder="Enter var_dump..."></textarea>
+    <button onclick="convert()">Convert</button>
     <label for="output">Output (PHP):</label>
-    <textarea id="output" readonly placeholder="$result['klucz'] = 'wartosc';
-$result['klucz_int'] = 312;"></textarea>
+    <pre id="output"></pre>
 
     <script>
         function convert() {
             const input = document.getElementById('input').value;
             const output = document.getElementById('output');
-            const result = [];
+            let result = '';
 
-            function parseVarDump(varDump, parentKey = '') {
-                const regex = /\["(.*?)"\]=>\s*(array\((\d+)\)\s*\{([^{}]*)\}|string\(\d+\) "(.*?)"|int\((\d+)\)|float\((\d+\.\d+)\)|bool\((true|false)\))/g;
-                let match;
-                const arrayRegex = /array\((\d+)\)\s*\{([^{}]*)\}/g;
-                const isEmptyArray = arrayRegex.exec(varDump);
+            const lines = input.trim().split('\n').map(line => line.trim()).filter(line => line.length > 0);
 
-                if (isEmptyArray && isEmptyArray[1] === '0') {
-                    result.push(`$result = [];`);
-                    return;
-                }
+            result += '$result = [];\n';
 
-                while ((match = regex.exec(varDump)) !== null) {
-                    const key = parentKey ? `${parentKey}['${match[1]}']` : `['${match[1]}']`;
-                    if (match[2] && match[2].startsWith("array")) {
-                        result.push(`$result${key} = [];`);
-                        parseVarDump(match[4], key);
-                    } else if (match[5] !== undefined) {
-                        result.push(`$result${key} = '${match[5]}';`);
-                    } else if (match[6] !== undefined) {
-                        result.push(`$result${key} = ${match[6]};`);
-                    } else if (match[7] !== undefined) {
-                        result.push(`$result${key} = ${match[7]};`);
-                    } else if (match[8] !== undefined) {
-                        result.push(`$result${key} = ${match[8]};`);
+            let insideArray = false;
+            let key = '';
+            let value = '';
+            let stack = [];
+            let current = {};
+            let currentKey = '';
+            let parentKey = '';
+
+            lines.forEach(line => {
+                if (line.startsWith('array')) {
+                    if (insideArray) {
+                        stack.push({ obj: current, key: parentKey });
+                    }
+                    current = {};
+                    insideArray = true;
+                } else if (line.startsWith('}')) {
+                    if (stack.length > 0) {
+                        const parent = stack.pop();
+                        parent.obj[parent.key] = current;
+                        current = parent.obj;
+                        insideArray = false;
+                    } else {
+                        insideArray = false;
+                    }
+                } else if (line.endsWith('=>')) {
+                    key = line.slice(0, -2).replace(/^\["|\"]$/g, '');
+                    parentKey = key;
+                } else if (line.startsWith('string')) {
+                    value = line.split('"')[1];
+                    if (insideArray) {
+                        current[key] = `'${value}'`;
+                    } else {
+                        result += `$result['${key}'] = '${value}';\n`;
+                    }
+                } else if (line.startsWith('int')) {
+                    value = parseInt(line.match(/\d+/)[0], 10);
+                    if (insideArray) {
+                        current[key] = value;
+                    } else {
+                        result += `$result['${key}'] = ${value};\n`;
+                    }
+                } else if (line.startsWith('float')) {
+                    value = parseFloat(line.match(/[\d\.]+/)[0]);
+                    if (insideArray) {
+                        current[key] = value;
+                    } else {
+                        result += `$result['${key}'] = ${value};\n`;
+                    }
+                } else if (line.startsWith('bool')) {
+                    value = line.includes('true') ? 'true' : 'false';
+                    if (insideArray) {
+                        current[key] = value;
+                    } else {
+                        result += `$result['${key}'] = ${value};\n`;
                     }
                 }
+            });
+
+            function generatePHP(obj, level = 0, parentKey = '') {
+                let phpCode = '';
+
+                if (parentKey === '' ) {
+                    console.log(obj, parentKey)
+                    for (const [key, value] of Object.entries(obj)) {
+                        if (typeof value === 'object') {
+                            phpCode += `${'   '.repeat(level)}$result['${key}'] = [];\n`;
+                            phpCode += generatePHP(value, level + 1, key);
+                        } else {
+                            phpCode += `${'   '.repeat(level)}$result['${key}'] = ${value};\n`;
+                        }
+                    }
+                } else {
+                    for (const [key, value] of Object.entries(obj)) {
+                        const indent = '   '.repeat(level);
+                        if (typeof value === 'object') {
+                            phpCode += `${indent}$result['${parentKey}']['${key}'] = [];\n`;
+                            phpCode += generatePHP(value, level + 1, key);
+                        } else {
+                            phpCode += `${indent}$result['${parentKey}']['${key}'] = ${value};\n`;
+                        }
+                    }
+                }
+
+                return phpCode;
             }
 
-            parseVarDump(input);
 
-            output.value = result.join('\n');
+            result += generatePHP(current, 1);
+            output.textContent = result;
         }
     </script>
-
 </body>
 
 </html>
