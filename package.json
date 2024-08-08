@@ -1,0 +1,26 @@
+{
+  "name": "zad1_05.08.2024",
+  "version": "1.0.0",
+  "description": "Parser_PHP",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Maciej-Lask/zad1_05.08.2024.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Maciej-Lask/zad1_05.08.2024/issues"
+  },
+  "homepage": "https://github.com/Maciej-Lask/zad1_05.08.2024#readme",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
+}
