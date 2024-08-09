@@ -1,5 +1,9 @@
+
+// Jeżeli następne dwie linie są odkomentowane, to nie działa html za to działają testy
 // const { convertToMultiline } = require('./convertToMultiline.js');
 // const { generatePHP } = require('./generatePHP.js');
+import { convertToMultiline } from './convertToMultiline';
+import { generatePHP } from './generatePHP';
 
 function convert() {
   // Get input element
@@ -75,4 +79,6 @@ function convert() {
   return result;
 }
 
-module.exports = { convert };
+// module.exports = { convert };
+export { convert };
+window.convert = convert;

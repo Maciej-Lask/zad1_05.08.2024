@@ -1,5 +1,6 @@
 const { generatePHP } = require('../utils/generatePHP');
 
+
 describe('generatePHP', () => {
   it('should generate PHP code for a simple object', () => {
     const input = {

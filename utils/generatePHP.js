@@ -83,4 +83,4 @@ function generatePHP(obj, level = 0, parentKey = '') {
   return phpCode;
 }
 
-module.exports = { generatePHP };
+export { generatePHP };

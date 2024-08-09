@@ -88,4 +88,4 @@ function convertToMultiline(input) {
   return result;
 }
 
-module.exports = { convertToMultiline };
+export { convertToMultiline };
