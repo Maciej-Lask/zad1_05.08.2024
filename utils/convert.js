@@ -1,7 +1,3 @@
-
-// Jeżeli następne dwie linie są odkomentowane, to nie działa html za to działają testy
-// const { convertToMultiline } = require('./convertToMultiline.js');
-// const { generatePHP } = require('./generatePHP.js');
 import { convertToMultiline } from './convertToMultiline';
 import { generatePHP } from './generatePHP';
 
@@ -9,6 +5,12 @@ function convert() {
   // Get input element
   const input = document.getElementById('input');
   const inputMultiline = convertToMultiline(input.value);
+
+  if (inputMultiline.startsWith('Error:')) {
+    const output = document.getElementById('output');
+    output.textContent = inputMultiline; // Ustaw output na komunikat o błędzie
+    return inputMultiline;
+  }
 
   // Initialize variables
   let stack = [];
@@ -71,7 +73,6 @@ function convert() {
   });
 
   // Generate PHP code and set output
-  console.log(current);
   const result = generatePHP(current);
   const output = document.getElementById('output');
   output.textContent = result;

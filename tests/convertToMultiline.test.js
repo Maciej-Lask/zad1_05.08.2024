@@ -76,7 +76,6 @@ describe('convertToMultiline', () => {
     expect(convertToMultiline(input).trim()).toEqual(expectedOutput);
   });
 
-  // Test dla pustych danych
   it('should handle empty data correctly', () => {
     const input = 'array(0) {}';
     const expectedOutput = `array(0)
@@ -85,4 +84,48 @@ describe('convertToMultiline', () => {
 `.trim();
     expect(convertToMultiline(input).trim()).toEqual(expectedOutput);
   });
+
+  it('should return an error for unmatched closing curly bracket', () => {
+    const input = 'array(1) { ["klucz"]=> string(7) "wartosc" } }';
+    expect(convertToMultiline(input)).toEqual(
+      'Error: Unmatched closing curly bracket }'
+    );
+  });
+
+  it('should return an error for unmatched opening curly bracket', () => {
+    const input = 'array(1) { { ["klucz"]=> string(7) "wartosc" }';
+    expect(convertToMultiline(input)).toEqual(
+      'Error: Unmatched opening curly bracket {'
+    );
+  });
+
+  it('should return an error for unmatched closing round bracket', () => {
+    const input = 'array(1) ( ["klucz"]=> string(7) "wartosc" ) )';
+    expect(convertToMultiline(input)).toEqual(
+      'Error: Unmatched closing round bracket )'
+    );
+  });
+
+  it('should return an error for unmatched opening round bracket', () => {
+    const input = 'array(1) ( ( ["klucz"]=> string(7) "wartosc" )';
+    expect(convertToMultiline(input)).toEqual(
+      'Error: Unmatched opening round bracket ('
+    );
+  });
+
+  it('should return an error for unmatched closing square bracket', () => {
+    const input = 'array(1) [ ["klucz"]=> string(7) "wartosc" ] ]';
+    expect(convertToMultiline(input)).toEqual(
+      'Error: Unmatched closing square bracket ]'
+    );
+  });
+
+  it('should return an error for unmatched opening square bracket', () => {
+    const input = 'array(1) [ [ ["klucz"]=> string(7) "wartosc" ]';
+    expect(convertToMultiline(input)).toEqual(
+      'Error: Unmatched opening square bracket ['
+    );
+  });
+
+  
 });

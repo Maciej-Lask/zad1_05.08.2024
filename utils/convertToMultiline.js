@@ -3,6 +3,10 @@ function convertToMultiline(input) {
   let currentLine = '';
   let inString = false;
 
+  // Stacks to keep track of opening brackets
+  let curlyStack = [];
+  let roundStack = [];
+  let squareStack = [];
 
   for (let i = 0; i < input.length; i++) {
     let char = input[i];
@@ -12,13 +16,46 @@ function convertToMultiline(input) {
       inString = !inString;
     }
 
-    // Handle opening array( and closing } characters
+    // Handle opening and closing curly brackets { }
     if (!inString && (char === '{' || char === '}')) {
+      if (char === '{') {
+        curlyStack.push(char);
+      } else if (char === '}') {
+        if (curlyStack.length === 0) {
+          return 'Error: Unmatched closing curly bracket }';
+        }
+        curlyStack.pop();
+      }
+
       if (currentLine.trim().length > 0) {
         lines.push(currentLine.trim());
         currentLine = '';
       }
       lines.push(char);
+    }
+    // Handle opening and closing round brackets ( )
+    else if (!inString && (char === '(' || char === ')')) {
+      if (char === '(') {
+        roundStack.push(char);
+      } else if (char === ')') {
+        if (roundStack.length === 0) {
+          return 'Error: Unmatched closing round bracket )';
+        }
+        roundStack.pop();
+      }
+      currentLine += char;
+    }
+    // Handle opening and closing square brackets [ ]
+    else if (!inString && (char === '[' || char === ']')) {
+      if (char === '[') {
+        squareStack.push(char);
+      } else if (char === ']') {
+        if (squareStack.length === 0) {
+          return 'Error: Unmatched closing square bracket ]';
+        }
+        squareStack.pop();
+      }
+      currentLine += char;
     }
     // Handle arrow => separator
     else if (!inString && char === '=' && input[i + 1] === '>') {
@@ -48,6 +85,17 @@ function convertToMultiline(input) {
   // Push the last processed line
   if (currentLine.trim().length > 0) {
     lines.push(currentLine.trim());
+  }
+
+  // Check if all stacks are empty, indicating all brackets matched
+  if (curlyStack.length > 0) {
+    return 'Error: Unmatched opening curly bracket {';
+  }
+  if (roundStack.length > 0) {
+    return 'Error: Unmatched opening round bracket (';
+  }
+  if (squareStack.length > 0) {
+    return 'Error: Unmatched opening square bracket [';
   }
 
   // Combine strings and their values into a single line

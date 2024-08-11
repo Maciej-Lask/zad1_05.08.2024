@@ -1,4 +1,3 @@
-// import { convert } from '../utils/convert';
 const { convert } = require('../utils/convert');
 
 document.getElementById = jest.fn((id) => {
@@ -124,6 +123,36 @@ describe('convert', () => {
       `   $result['moje_liczby'][3] = 5;\n` +
       `   $result['moje_liczby'][4] = 7;\n`;
 
+    expect(convert()).toBe(expectedOutput);
+  });
+
+  it('should return error for unmatched closing bracket', () => {
+    document.getElementById.mockReturnValueOnce({
+      value:
+        'array(3) { ["klucz"]=> string(7) "wartosc" ["klucz2"]=> string(8) "wartosc2" } }',
+    });
+
+    const expectedOutput = 'Error: Unmatched closing curly bracket }';
+    expect(convert()).toBe(expectedOutput);
+  });
+
+  it('should return error for unmatched opening bracket', () => {
+    document.getElementById.mockReturnValueOnce({
+      value:
+        'array(3) { ["klucz"]=> string(7) "wartosc" ["klucz2"]=> string(8) "wartosc2" ',
+    });
+
+    const expectedOutput = 'Error: Unmatched opening curly bracket {';
+    expect(convert()).toBe(expectedOutput);
+  });
+
+  it('should return error for unmatched square bracket', () => {
+    document.getElementById.mockReturnValueOnce({
+      value:
+        'array(3) { ["klucz"=> string(7) "wartosc" ["klucz2"]=> string(8) "wartosc2" }',
+    });
+
+    const expectedOutput = 'Error: Unmatched opening square bracket [';
     expect(convert()).toBe(expectedOutput);
   });
 });
